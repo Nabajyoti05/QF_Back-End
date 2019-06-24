@@ -1,21 +1,27 @@
 import React,{Component} from 'react';
-import { Text, View, TextInput, StyleSheet, ScrollView, Button, Picker,Image, TouchableOpacity } from 'react-native';
+import { Text, View, TextInput, StyleSheet, ScrollView, Button, Picker,Image, TouchableOpacity, Alert } from 'react-native';
 
+import DatePicker from 'react-native-datepicker';
+import moment from 'moment';
 
+import { openDatabase } from 'react-native-sqlite-storage';
+const db = openDatabase({ name: 'users_db.db', createFromLocation :'~www/users_db.db'});
 
 class AddScreen extends Component {
   state={
-    date: new Date(),
+    date: moment().subtract(5, "years"),
+    age:null,
     TextInputDisableStatus: false,
+    state:[],
+    course:[],
     states:[
+      {name:'select'},
       {name:"Andhra Pradesh"},
       {name:"Arunachal Pradesh"},
       {name:"Assam"},
       {name:"Bihar"},
       {name:"Chhattisgarh"},
       {name:"Chandigarh"},
-      {name:"Dadra and Nagar Haveli"},
-      {name:"Daman and Diu"},
       {name:"Delhi"},
       {name:"Goa"},
       {name:"Gujarat"},
@@ -37,12 +43,14 @@ class AddScreen extends Component {
       {name:"Rajasthan"},
       {name:"Sikkim"},
       {name:"Tamil Nadu"},
+      {name:"Telangana"},
       {name:"Tripura"},
       {name:"Uttar Pradesh"},
       {name:"Uttarakhand"},
       {name:"West Bengal"}
     ],
-    courses: [ 
+    courses: [
+      {name: 'select'},
       {name: '12th'},
       {name: 'BA'},
       {name: 'BCom'},
@@ -59,6 +67,134 @@ class AddScreen extends Component {
     ]
   }
 
+  componentDidMount(){
+    let age = moment(this.state.date).fromNow(true)
+
+    this.setState({
+      age: age,
+      course:{name: 'select'},
+      state:{name: 'select'},
+    })
+  }
+
+  courseHandler = (course) => {
+    this.setState({
+      ...this.state,
+      course: course
+    })
+  }
+
+  stateHandler = (state) => {
+    this.setState({
+      ...this.state,
+      state: state
+    })
+  }
+
+  addStudent = () => {
+    let that = this;
+    const {fname} = this.state;
+    const {mname} = this.state;
+    const {lname} = this.state;
+    const dob = moment(this.state.date).format('DD-MM-YYYY');
+    const age = this.state.age;
+    const course = this.state.course;
+    const {special} = this.state;
+    const {address1} = this.state;
+    const {address2} = this.state;
+    const {city} = this.state;
+    const state = this.state.state;
+    const {pincode} = this.state;
+    const {country} = this.state;
+    console.log("Course", state)
+
+    if(fname){
+      if(mname){
+        if(lname){
+            if(this.state.course.name !== 'select'){
+              if(this.state.course !== 'select'){
+                if(special){
+                  if(address1){
+                      if(city){
+                        if(this.state.state.name !== 'select'){
+                          if(this.state.state !== 'select'){
+                            if(pincode){
+                              if(country){
+
+                                db.transaction( function(tx){                
+                                  tx.executeSql('INSERT INTO students(stud_fname, stud_mname, stud_lname, stud_dob, age, degree, specialization, address1, address2, city, state, pincode, country, deleted, active) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', [fname, mname, lname, dob, age, course ,special, address1,address2 ? address2 : null,city, state, pincode, country, 0, 1], (tx, results) => {
+                                    
+                                    console.log("row",results.rowsAffected);
+                                      if(results.rowsAffected){
+                                        Alert.alert('Success', 'You are Registered Successfully',
+                                        [
+                                          {
+                                            text: 'Ok',
+                                            onPress: () =>
+                                              that.props.navigation.navigate("TabIndex"),
+                                          },
+                                        ],
+                                        { cancelable: false })
+                                      } else {
+                                        alert('Registration Failed');
+                                      }
+                                    
+                                  })
+                                }, function(error) {
+                                  console.log('Transaction ERROR: ' + error.message);
+                                }, function() {
+                                  console.log('Populated database OK');
+                                })
+                              }
+                              else {
+                                alert('Country is mandatory')
+                              }
+                            }else {
+                              alert('Pin Code is mandatory')
+                          }
+                        }else {
+                            alert('State is mandatory')
+                          }
+                        }else {
+                          alert('State is mandatory')
+                        }
+                      }
+                       else {
+                        alert('City is mandatory')
+                      }                  
+                  }else {
+                    alert('Address LIne 1 is mandatory')
+                  }
+                }else {
+                  alert('Speacialization is mandatory')
+                }
+              }else {
+                alert('Course is mandatory')
+              }
+            }else {
+              alert('Course is mandatory')
+            }
+        }else {
+          alert('Last Name is mandatory')
+        }
+      } else {
+        alert('Middle Name is mandatory')
+      }
+    } else {
+      alert('First Name is mandatory')
+    }
+  }
+
+  dateHandler = (date) => {
+    console.log('Date', date)
+
+    let age = moment(date).fromNow(true)
+
+    this.setState({
+      date: date,
+      age: age
+    })
+  }
 
   render() {
 
@@ -82,15 +218,15 @@ class AddScreen extends Component {
           <View style={styles.outerContainer}>
               <View style={styles.innerContainer}>
                 {/* <Text style={styles.text}>Name</Text> */}
-                <TextInput style={styles.textInput} placeholder='First Name'/>   
+                <TextInput style={styles.textInput} placeholder='First Name' onChangeText={fname => this.setState({ fname })}/>   
               </View>
 
               <View style={styles.innerContainer}>
-                <TextInput style={styles.textInput} placeholder='Middle Name'/>   
+                <TextInput style={styles.textInput} placeholder='Middle Name' onChangeText={mname => this.setState({ mname })}/>   
               </View>
 
               <View style={styles.innerContainer}>
-                <TextInput style={styles.textInput} placeholder='Last Name'/>   
+                <TextInput style={styles.textInput} placeholder='Last Name' onChangeText={lname => this.setState({ lname })}/>   
               </View>
 
               <View style={styles.innerContainer}>
@@ -98,12 +234,22 @@ class AddScreen extends Component {
 
                     <View style={{width:'70%', marginRight:2}}>
                       <Text style={styles.text}>DOB</Text>
-                      <TextInput style={styles.textInput} placeholder='DD/MM/YYYY'/>
+                      <DatePicker style={{width: '90%', marginTop:10}} 
+                                  placeholder="select date"
+                                  date={this.state.date}
+                                  mode="date"
+                                  format="DD-MM-YYYY"
+                                  maxDate={moment().subtract(5, 'years')}
+                                  confirmBtnText="Confirm"
+                                  cancelBtnText="Cancel"
+                                  onDateChange={(date) => {this.dateHandler(date)}}/>
+
+                      {/* <TextInput style={styles.textInput} placeholder='DD/MM/YYYY' onChangeText={dob => this.setState({ dob })}/> */}
                     </View>
                     
                     <View style={{width:'30%', marginLeft:2}}>
                       <Text style={styles.text}>Age</Text>
-                      <TextInput style={styles.textInput} placeholder='Age' editable={this.state.TextInputDisableStatus}/>
+                      <TextInput style={{width: '100%',borderBottomColor: 'black',borderBottomWidth: 1,marginBottom:10}} placeholder='Age' value={this.state.age} editable={this.state.TextInputDisableStatus}/>
                     </View>
                 </View>   
               </View>
@@ -112,10 +258,10 @@ class AddScreen extends Component {
                     <View style={{width:'100%', flexDirection:'column'}}>
                       <Text style={styles.text}>Highest Qualification</Text>
                       <Picker
-                          selectedValue={this.state.language}
+                          selectedValue={this.state.course}
                           style={{height:25, marginTop:10}}
                           onValueChange={(itemValue, itemIndex) =>
-                            this.setState({language: itemValue})
+                          this.courseHandler(itemValue)                          
                           }>
                             {courses}
                         </Picker>
@@ -124,33 +270,33 @@ class AddScreen extends Component {
 
                     <View style={{flexDirection:'column',marginTop:20}}>
                       <Text style={styles.text}>Specialization</Text>
-                      <TextInput style={styles.textInput} placeholder='Specialization Name'/>
+                      <TextInput style={styles.textInput} placeholder='Specialization Name' onChangeText={special => this.setState({ special })}/>
                     </View> 
               </View> 
 
               <View style={styles.innerContainer}>
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>Address Line1</Text>                      
-                      <TextInput style={styles.textInput} placeholder='House No/ Lane/ Locality'/>
+                      <TextInput style={styles.textInput} placeholder='House No/ Lane/ Locality' onChangeText={address1 => this.setState({ address1 })}/>
                     </View> 
 
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>Address Line2 (Optional)</Text>
-                      <TextInput style={styles.textInput} placeholder='Landmark/ Additional address'/>
+                      <TextInput style={styles.textInput} placeholder='Landmark/ Additional address' onChangeText={address2 => this.setState({ address2 })}/>
                     </View> 
 
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>City</Text>
-                      <TextInput style={styles.textInput} placeholder='City'/>
+                      <TextInput style={styles.textInput} placeholder='City' onChangeText={city => this.setState({ city })}/>
                     </View> 
 
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>State</Text>
                       <Picker
-                          selectedValue={this.state.language}
+                          selectedValue={this.state.state}
                           style={{height:25, marginTop:10}}
                           onValueChange={(itemValue, itemIndex) =>
-                            this.setState({language: itemValue})
+                            this.stateHandler(itemValue)
                           }>
                             {states}
                         </Picker>
@@ -159,18 +305,18 @@ class AddScreen extends Component {
 
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>Pincode</Text>
-                      <TextInput style={styles.textInput} placeholder='Pincode'/>
+                      <TextInput style={styles.textInput} placeholder='Pincode' onChangeText={pincode => this.setState({ pincode })}/>
                     </View> 
 
                     <View style={{width:'100%', flexDirection:'column', marginBottom:20}}>
                       <Text style={styles.text}>Country</Text>
-                      <TextInput style={styles.textInput} placeholder='Country'/>
+                      <TextInput style={styles.textInput} placeholder='Country' onChangeText={country => this.setState({ country })}/>
                     </View> 
               </View> 
 
               <View style={styles.innerContainer}>
                     <View style={{margin:5}}>
-                      <Button title="Submit" color='tomato'/>
+                      <Button title="Submit" color='tomato' onPress={this.addStudent.bind(this)}/>
                     </View>
               </View>
 

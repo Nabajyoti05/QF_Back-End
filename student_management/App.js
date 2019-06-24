@@ -5,33 +5,17 @@ import Login from './Components/Login';
 import SignUp from './Components/SignUp';
 import AddScreen from './Components/AddScreen';
 import TabIndexes from './Components/TabIndexes';
+import View from './Components/Components/ViewDetails';
+import Edit from './Components/editDetail';
 
 const AppContainer = createStackNavigator(
     {
-        Login: {
-            screen: Login,
-            // navigationOptions: ({ navigation }) => ({
-            //     title: 'Login',
-            //   }),
-        },
-        SignUp:{
-            screen: SignUp,
-            // navigationOptions: ({ navigation }) => ({
-            //     title: 'Sign-Up',
-            //   }),
-        },
-        AddScreen:{
-            screen: AddScreen,
-            // navigationOptions: ({ navigation }) => ({
-            //     title: 'Add Students',
-            //   }),
-        },
-        TabIndex:{
-            screen: TabIndexes,
-            // navigationOptions: ({ navigation }) => ({
-            //     title: 'Home',
-            //   }),
-        },
+        Login: Login,
+        SignUp:SignUp,
+        AddScreen:AddScreen,
+        View: View,
+        Edit: Edit,
+        TabIndex: TabIndexes
     },
     {
         initialRouteName: 'Login',
